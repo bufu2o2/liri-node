@@ -14,4 +14,4 @@ Everything you need to run this js Node app is in the **package.json** file.
 ### The video demonstration of this app is here:
 [Demonstration Video](https://vimeo.com/user31587818/review/329296574/fe60748af4)
 
-> enjoy the liri app!
+> video password: liri-node
