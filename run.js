@@ -5,6 +5,7 @@ const Spotify = require("node-spotify-api");
 const keys = require("./keys.js");
 const spotify = new Spotify(keys.spotify);
 const axios = require("axios");
+const c = require("chalk");
 const fs = require("fs");
 const hr = "======================================================================";
 const br = "\n\n";
@@ -18,7 +19,7 @@ const ct = (m) => {
 
 let event = (artist) => {
     fs.appendFile("log.txt", "\nSearched for the concert of: " + artist, (e) => {
-        if(e) throw e;
+        if(e) cl(c.red.bold(e));
         cl(br + "           Searching . . . " + br + br);
     });
     let URL = "https://rest.bandsintown.com/artists/" + artist + "/events?app_id=codingbootcamp";
@@ -31,7 +32,7 @@ let event = (artist) => {
             x = 10;
         }
         if(r.data.length === 0){
-            cl(br + artist + " doesn't have any upcoming concerts" + br + hr + br);
+            cl(c.red.bold(br + artist + " doesn't have any upcoming concerts" + br + hr + br));
         }
         else{
             for(let i = 0; i<x; i++){
@@ -45,7 +46,7 @@ let event = (artist) => {
 
 let search = (q) => {
     fs.appendFile("log.txt", "\nSearched for the song titled: " + q, (e) => {
-        if(e) throw e;
+        if(e) cl(c.red.bold(e));
         cl(br + "           Searching . . . " + br + br);
     });
     spotify.search({
@@ -65,7 +66,7 @@ let search = (q) => {
 
 let movie  = (t) => {
     fs.appendFile("log.txt", "\nSearched for the movie titled: " + t, (e) => {
-        if(e) throw e;
+        if(e) throw cl(c.red.bold(e));
         cl(br + "           Searching . . . " + br + br);
     });
     let URL = "http://www.omdbapi.com/?t=" + t + "&y=&plot=short&apikey=trilogy";
@@ -93,12 +94,48 @@ let movie  = (t) => {
 }
 
 
+let custom = (customSearch) => {
+    fs.writeFile("random.txt", customSearch, (e) => {
+        if(e) throw cl(c.red.bold(e));
+    });
+    fs.readFile("random.txt", "utf8", (e, d) => {
+        if(e) throw cl(c.red.bold(e));
+
+    let file = d.trim().split(" ");
+    let q = d.split('"');
+    
+    for(let i=0; i<file.length; i++){
+        if(file[i] === "song"){
+            cl(c.green("Searching for your song " + q[1]));
+            return search(q[1].trim());
+        }
+        else if(file[i] === "movie"){
+            cl(c.green("Searching for your movie " + q[1]));
+            return movie(q[1].trim());
+        }
+        else if(file[i] === "concert"){
+            cl(c.green("Searching for your concert " + q[1]));
+            return event(q[1].trim());
+        }
+    }
+    });
+}
+
+
+
+
+
+
+
+
+
+
 cl(br + hr + br + "                WELCOME TO YOUR OWN PERSONAL LIRI!" + br + br);
 i.prompt([
     {
         type: "list",
         message: "What would you like to search?\n",
-        choices: ["Song (by title)", "Concert (by artist)", "Movie (by title)"],
+        choices: ["Song (by title)", "Concert (by artist)", "Movie (by title)", "Type your own custom search"],
         name: "choice",
     }
 ]).then((r) => {
@@ -138,8 +175,17 @@ i.prompt([
                 movie(r.sel);
             });
                 break;
-            default: "Movie (by title)"
-                movie("Mr. Nobody");
+
+            case "Type your own custom search": 
+            i.prompt([
+                {
+                    type: "input",
+                    message: br + "Please put quotes around the artist, movie, or song you'd like to search (:\n\n-Liri\n\n\n",
+                    name: "sel",
+                }
+            ]).then((r) => {
+                custom(r.sel);
+            });
                 break;
         }
 });
